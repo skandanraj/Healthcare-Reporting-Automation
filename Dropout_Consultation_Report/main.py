@@ -1,13 +1,22 @@
-
 """
-Dropout Consultation Automated Email Report
---------------------------------------------
-Generates a report of cancelled consultations from yesterday
-and emails it via Outlook SMTP.
+Dropout Consultation Report Automation
+---------------------------------------
 
-Author: Skanda N Raj
+Purpose:
+This script generates a daily dropout consultation report
+for selected hospitals and sends it via Outlook SMTP.
+
+Business Logic:
+1. Reads MIS Excel report
+2. Filters cancelled appointments
+3. Filters only yesterday's records
+4. Filters only selected hospitals
+6. Sends filtered report via email
+
+Author: SKANDA N RAJ
 """
 
+# ================= IMPORTS =================
 import os
 import pandas as pd
 from datetime import datetime, timedelta
@@ -18,97 +27,171 @@ from email.mime.text import MIMEText
 from email import encoders
 from dotenv import load_dotenv
 
-# Load environment variables
+
+# ================= ENVIRONMENT SETUP =================
+# Loads EMAIL_USER and EMAIL_PASSWORD from .env file
 load_dotenv()
 
-# ================= CONFIG =================
 
-INPUT_FILE = "data/sample_MIS_Report.xlsx"
-OUTPUT_FILE = "output/Dropout_Consultations.xlsx"
+# ================= CONFIGURATION =================
 
+# Input MIS report file path
+# Example:
+# input_file = r"C:\Users\YourName\OneDrive\MIS_Report.xlsx"
+input_file = r"input file path\MIS_Report.xlsx"
+
+# Output file path where filtered report will be saved
+output_file_cancelled = r"output file path\Dropout_Consultations_Karnataka.xlsx"
+
+
+# ================= EMAIL SETTINGS =================
 SMTP_SERVER = "smtp.office365.com"
 SMTP_PORT = 587
 
 FROM_EMAIL = os.getenv("EMAIL_USER")
 EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 
-TO_EMAILS = ["recipient@example.com"]
-CC_EMAILS = ["cc_recipient@example.com"]
+TO_EMAILS = [
+    "recipient1@yourdomain.com",
+    "recipient2@yourdomain.com",
+    "recipient3@yourdomain.com"
+]
 
-# ==========================================
-
-
-def generate_report():
-    yesterday = datetime.today().date() - timedelta(days=1)
-
-    df = pd.read_excel(INPUT_FILE, engine="openpyxl")
-    df.columns = df.columns.str.strip()
-
-    possible_date_cols = [col for col in df.columns if "date" in col.lower()]
-    if not possible_date_cols:
-        raise ValueError("Date column not found")
-
-    date_col = possible_date_cols[0]
-    df[date_col] = pd.to_datetime(df[date_col], errors="coerce")
-
-    df_filtered = df[
-        (df["Appt. Status"].str.lower() == "cancelled") &
-        (df[date_col].dt.date == yesterday)
-    ].copy()
-
-    os.makedirs(os.path.dirname(OUTPUT_FILE), exist_ok=True)
-    df_filtered.to_excel(OUTPUT_FILE, index=False)
-
-    print("✅ Report generated successfully")
+CC_EMAILS = ["cc_recipient@yourdomain.com"]
 
 
-def send_email():
-    yesterday = datetime.today().date() - timedelta(days=1)
+# ================= DATE LOGIC =================
+# Dynamically calculate yesterday's date
+yesterday = datetime.today().date() - timedelta(days=1)
 
-    subject = f"Dropout Report - {yesterday.strftime('%d/%m/%Y')}"
-    body = f"""Hi Team,
+SUBJECT = f"Yesterday's Dropout Consultations Report - {yesterday.strftime('%d/%m/%Y')}"
 
-Please find attached the dropout consultations report 
-for {yesterday.strftime('%d/%m/%Y')}.
+BODY = f"""Hi Team,
 
-Regards,
+This report contains patients who reached the payment page but did not complete the payment yesterday ({yesterday.strftime('%d/%m/%Y')}).
+
+Best regards,
 Analytics Team
 """
 
-    msg = MIMEMultipart()
-    msg["From"] = FROM_EMAIL
-    msg["To"] = ", ".join(TO_EMAILS)
-    msg["Cc"] = ", ".join(CC_EMAILS)
-    msg["Subject"] = subject
-    msg.attach(MIMEText(body, "plain"))
 
-    with open(OUTPUT_FILE, "rb") as f:
-        part = MIMEBase("application", "octet-stream")
-        part.set_payload(f.read())
+# ================= STEP 1: PROCESS MIS REPORT =================
 
-    encoders.encode_base64(part)
-    part.add_header(
-        "Content-Disposition",
-        f"attachment; filename={os.path.basename(OUTPUT_FILE)}"
-    )
-    msg.attach(part)
+# Read Excel file
+df = pd.read_excel(input_file, engine="openpyxl")
 
-    try:
-        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
-        server.starttls()
-        server.login(FROM_EMAIL, EMAIL_PASSWORD)
-        server.sendmail(FROM_EMAIL, TO_EMAILS + CC_EMAILS, msg.as_string())
-        server.quit()
-        print("📧 Email sent successfully")
-
-    except Exception as e:
-        print("❌ Email error:", e)
+# Clean column names (remove leading/trailing spaces)
+df.columns = df.columns.str.strip()
 
 
-def run():
-    generate_report()
-    send_email()
+# -------- Detect Appointment Date Column Dynamically --------
+possible_date_cols = [col for col in df.columns if "date" in col.lower()]
+
+if not possible_date_cols:
+    print("❌ Appointment date column not found")
+    print(df.columns.tolist())
+    raise SystemExit
+
+DATE_COL = possible_date_cols[0]
+
+# Convert detected date column to datetime format
+df[DATE_COL] = pd.to_datetime(df[DATE_COL], errors="coerce")
 
 
-if __name__ == "__main__":
-    run()
+# -------- Hospital Filter --------
+allowed_hospitals = [
+    "Hospital A",
+    "Hospital B",
+    "Hospital C",
+]
+
+
+# -------- Apply Main Filters --------
+"""
+Filters Applied:
+
+1. Appointment Status must be 'cancelled'
+2. Appointment date must be yesterday
+3. Hospital must be in allowed_hospitals list
+"""
+
+df_c = df[
+    (df["Appt. Status"].astype(str).str.strip().str.lower() == "cancelled") &
+    (df[DATE_COL].dt.date == yesterday) &
+    (df["Hospital Name"].astype(str).str.strip().isin(allowed_hospitals))
+].copy()
+
+
+# -------- Optional Filter --------
+# If column "Consider Patient" exists,
+# keep only rows where value = "Yes"
+if "Consider Patient" in df_c.columns:
+    df_c = df_c[
+        df_c["Consider Patient"]
+        .astype(str)
+        .str.lower()
+        .str.strip() == "yes"
+    ]
+
+
+# -------- Select Required Columns --------
+cols_c = [
+    "Patient Name",
+    "Hospital Name",
+    "Mobile",
+    "Doctor Name",
+    "Speciality",
+    DATE_COL
+]
+
+cols_c_available = [col for col in cols_c if col in df_c.columns]
+
+df_c = df_c[cols_c_available].drop_duplicates()
+
+
+# -------- Save Output File --------
+os.makedirs(os.path.dirname(output_file_cancelled), exist_ok=True)
+
+df_c.to_excel(output_file_cancelled, index=False)
+
+print(f"✅ Cancelled appointments report generated: {output_file_cancelled}")
+
+
+# ================= STEP 2: SEND EMAIL =================
+
+msg = MIMEMultipart()
+msg["From"] = FROM_EMAIL
+msg["To"] = ", ".join(TO_EMAILS)
+msg["Cc"] = ", ".join(CC_EMAILS)
+msg["Subject"] = SUBJECT
+
+msg.attach(MIMEText(BODY, "plain"))
+
+
+# -------- Attach Excel File --------
+with open(output_file_cancelled, "rb") as f:
+    part = MIMEBase("application", "octet-stream")
+    part.set_payload(f.read())
+
+encoders.encode_base64(part)
+
+part.add_header(
+    "Content-Disposition",
+    f"attachment; filename={os.path.basename(output_file_cancelled)}"
+)
+
+msg.attach(part)
+
+
+# -------- Connect to SMTP Server & Send --------
+try:
+    server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+    server.starttls()
+    server.login(FROM_EMAIL, EMAIL_PASSWORD)
+    server.sendmail(FROM_EMAIL, TO_EMAILS + CC_EMAILS, msg.as_string())
+    server.quit()
+
+    print("📧 Email sent successfully with the attachment!")
+
+except Exception as e:
+    print("❌ Error sending email:", e)
