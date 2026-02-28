@@ -1,5 +1,5 @@
 """
-Missing Prescription Report - Jenkins Version
+Cancelled Appointments Monitoring - Jenkins Version
 ----------------------------------------------
 
 Designed for CI/CD automation using Jenkins.
