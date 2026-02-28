@@ -13,7 +13,7 @@ Generates a report of patients who:
 
 Then emails the report automatically.
 
-Author: Your Name
+Author: SKANDA N RAJ
 """
 
 import pandas as pd
