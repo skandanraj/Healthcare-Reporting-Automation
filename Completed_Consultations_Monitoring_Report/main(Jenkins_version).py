@@ -1,3 +1,16 @@
+"""
+Completed Consultation Report - Jenkins Version
+----------------------------------------------
+
+Designed for CI/CD automation using Jenkins.
+
+Features:
+- UTF-8 safe console logging
+- Exit codes for job monitoring
+- SMTP debug logging in Jenkins console
+- Environment variable based credentials
+"""
+
 #!/usr/bin/env python3
 
 import os
