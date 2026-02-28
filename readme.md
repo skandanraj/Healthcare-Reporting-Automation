@@ -17,7 +17,6 @@ Each report folder contains:
 This architecture ensures flexibility across environments while maintaining identical business logic.
 
 ---
-
 # 🏗 Architecture Overview
 
 Healthcare_Reporting_Automation/
@@ -44,6 +43,7 @@ Healthcare_Reporting_Automation/
 │
 ├── scheduler.py
 ├── jenkins_master.py
+│
 ├── data/
 │   └── MIS_Report.xlsx
 │
