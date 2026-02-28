@@ -43,6 +43,8 @@ Healthcare_Reporting_Automation/
 │
 ├── scheduler.py
 ├── jenkins_master.py
+├── requirements.txt
+├── README.md
 │
 ├── data/
 │   └── MIS_Report.xlsx
