@@ -17,8 +17,10 @@ Each report folder contains:
 This architecture ensures flexibility across environments while maintaining identical business logic.
 
 ---
-# 🏗 Architecture Overview
 
+## 🏗 Architecture Overview
+
+```
 Healthcare_Reporting_Automation/
 │
 ├── Cancelled_Appointments_Monitoring_Report/
@@ -50,7 +52,7 @@ Healthcare_Reporting_Automation/
 │   └── MIS_Report.xlsx
 │
 └── logs/
-
+```
 ---
 
 # 📊 Reports Included
