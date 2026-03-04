@@ -47,19 +47,19 @@ from win10toast import ToastNotifier
 # =====================================================
 
 # Workspace-relative MIS file path
-MIS_FILE_PATH = "data/MIS_Report.xlsx"
+MIS_FILE_PATH = r"E:\COURSES AND PROJECTS (DATA SCIENCE)\PROJECTS (ASTER DM HEALTHCARE)\Email Automation\Dummy Dataset.xlsx"
 
 # Report scripts inside repository (executed sequentially)
 SCRIPT_PATHS = [
-    "Cancelled_Appointments_Monitoring_Report/main.py",
-    "Completed_Consultations_Monitoring_Report/main.py",
-    "Dropout_Consultation_Report/main.py",
-    "Missing_Prescription_Report/main.py",
-    "Ops_Data_Sanitization/main.py"
+     r"python file path",
+    r"python file path",
+    r"python file path",
+    r"python file path",
+    r"python file path"
 ]
 
 # Daily execution time (24-hour format)
-CHECK_TIME = "10:30"
+CHECK_TIME = "19:44"
 
 # If MIS not updated, recheck interval (in minutes)
 RECHECK_INTERVAL = 30
@@ -68,9 +68,9 @@ RECHECK_INTERVAL = 30
 LOG_DIR = "logs"
 
 # Output folders where old Excel files should be deleted before execution
-EXCEL_DELETE_FOLDER_1 = "Dropout_Consultation_Report/output"
-EXCEL_DELETE_FOLDER_2 = "Completed_Consultations_Monitoring_Report/output"
-EXCEL_DELETE_FOLDER_3 = "Missing_Prescription_Report/output"
+EXCEL_DELETE_FOLDER_1 = r"excel folder file path"  
+EXCEL_DELETE_FOLDER_2 = r"excel folder file path"
+EXCEL_DELETE_FOLDER_3 = r"excel folder file path"
 
 
 # =====================================================
