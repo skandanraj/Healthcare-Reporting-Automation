@@ -2,7 +2,7 @@
 MIS Column Standardization Script
 ---------------------------------
 
-This script reads a raw MIS report and creates a cleaned version
+Reads raw MIS report and creates a cleaned version
 containing only required business columns.
 
 Author: SKANDA N RAJ
@@ -14,14 +14,12 @@ import os
 
 # ================= CONFIG =================
 
-# Input MIS file (place inside data folder)
-input_file = r"data/MIS_Report.xlsx"
+# Input MIS file
+input_file = r"input folder path\Dummy Dataset.xlsx"
 
-# Output file (saved inside output folder)
-output_folder = "output"
-os.makedirs(output_folder, exist_ok=True)
-
-output_file = os.path.join(output_folder, "MIS_Report_Cleaned.xlsx")
+# Output file (same folder as input)
+input_folder = os.path.dirname(input_file)
+output_file = os.path.join(input_folder, "MIS_Report_Sanish.xlsx")
 
 
 # ================= REQUIRED COLUMNS =================
@@ -58,7 +56,6 @@ columns_to_keep = [
     "Room ID",
     "Is Prescription Generated",
     "Prescription Generated DateTime",
-    "Waiting Time Patient",
     "Event Join Time Patient",
     "Event Left Time Patient",
     "Event Join Time Doctor",
@@ -83,14 +80,18 @@ missing_cols = [col for col in columns_to_keep if col not in df.columns]
 
 filtered_df = df[available_cols]
 
+print(f"✅ Columns kept: {len(available_cols)}")
+
 if missing_cols:
-    print("\n⚠️ The following columns were not found in the Excel file:")
+    print("\n⚠️ Missing columns:")
     for col in missing_cols:
-        print("  -", col)
+        print(" -", col)
 
 
 # ================= STEP 3: SAVE CLEANED FILE =================
 
-filtered_df.to_excel(output_file, index=False)
-
-print(f"\n✅ Cleaned file created successfully:\n{output_file}")
+try:
+    filtered_df.to_excel(output_file, index=False)
+    print(f"\n✅ Cleaned file created successfully:\n{output_file}")
+except Exception as e:
+    print(f"\n❌ Error saving file:\n{e}")
