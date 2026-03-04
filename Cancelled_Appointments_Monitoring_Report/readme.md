@@ -144,10 +144,8 @@ cancelled_appointments_monitoring/
 ├── requirements.txt
 ├── data/
 │   └── MIS_Report.xlsx
-│
-└── output/
-    ├── cancelled_paid_yesterday.xlsx
-    └── cancelled_patients.xlsx
+├── cancelled_paid_yesterday.xlsx
+├──cancelled_patients.xlsx
 ```
 
 ---
