@@ -72,7 +72,7 @@ Dropout_Consultation_Report/
 ├── main.py
 ├── README.md
 ├── requirements.txt
-└── .env (not committed to GitHub)
+└── Dropout_Consultations_Karnataka.xlsx
 ```
 
 ---
