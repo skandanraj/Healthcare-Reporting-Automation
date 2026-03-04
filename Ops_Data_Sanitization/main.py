@@ -19,7 +19,7 @@ input_file = r"input folder path\Dummy Dataset.xlsx"
 
 # Output file (same folder as input)
 input_folder = os.path.dirname(input_file)
-output_file = os.path.join(input_folder, "MIS_Report_Sanish.xlsx")
+output_file = os.path.join(input_folder, "Ops_Data_Sanitization.xlsx")
 
 
 # ================= REQUIRED COLUMNS =================
