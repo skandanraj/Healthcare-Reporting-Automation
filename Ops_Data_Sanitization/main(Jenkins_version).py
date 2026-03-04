@@ -31,7 +31,7 @@ input_file = r"input folder path\Dummy Dataset.xlsx"
 input_folder = os.path.dirname(input_file)
 
 # Save output in the same folder
-output_file = os.path.join(input_folder, "MIS_Report_Operational_View.xlsx")
+output_file = os.path.join(input_folder, "Ops_Data_Sanitization.xlsx")
 # ================= COLUMNS TO KEEP =================
 columns_to_keep = [
     "UHID",
