@@ -13,7 +13,7 @@ Generates a report of patients who:
 
 Then emails the report automatically.
 
-Author: SKANDA N RAJ
+Author: Your Name
 """
 
 import pandas as pd
@@ -33,22 +33,20 @@ load_dotenv()
 # ================= CONFIG =================
 
 # Use project-relative paths (GitHub friendly)
-input_file = "data/MIS_Report.xlsx"
-output_file = "output/prescription_no_yesterday.xlsx"
+input_file = r"input folder path\Dummy Dataset.xlsx"
+output_file = r"output folder path\prescription_no_yesterday.xlsx"
 
-SMTP_SERVER = "smtp.office365.com"
+SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
 
 FROM_EMAIL = os.getenv("EMAIL_USER")
 EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 
 TO_EMAILS = [
-    "recipient1@yourdomain.com",
-    "recipient2@yourdomain.com",
-    "recipient3@yourdomain.com"
+    "recipient@domain.com"
 ]
 
-CC_EMAILS = ["cc_recipient@yourdomain.com"]
+CC_EMAILS = ["recipient@domain.com"]
 
 
 # ================= DATE LOGIC =================
