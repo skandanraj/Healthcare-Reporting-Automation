@@ -104,13 +104,8 @@ completed_consultations_15days/
 ├── main.py
 ├── README.md
 ├── requirements.txt
-├── data/
-│   └── MIS_Report.xlsx
-│
-└── output/
-    └── last_15_days/
-        └── state/
-            └── sent_completed_keys.csv
+├── state
+├── completed_consultations_15days.xlsx
 ```
 
 ---
