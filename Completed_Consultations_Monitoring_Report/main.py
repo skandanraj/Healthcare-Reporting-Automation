@@ -12,7 +12,7 @@ This script:
 - Maintains persistent sent-log state
 - Sends only NEW rows via email
 
-Author: Your Name
+Author: SKANDA N RAJ
 """
 
 import os
