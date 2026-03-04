@@ -12,7 +12,7 @@ This script:
 - Maintains persistent sent-log state
 - Sends only NEW rows via email
 
-Author: SKANDA N RAJ
+Author: Your Name
 """
 
 import os
@@ -32,9 +32,9 @@ load_dotenv()
 
 # ================= CONFIG =================
 
-INPUT_FILE = "data/MIS_Report.xlsx"
+INPUT_FILE = r"input folder path\Dummy Dataset.xlsx"
 
-OUTPUT_DIR = "output/last_15_days"
+OUTPUT_DIR = r"output folder path"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 OUTPUT_FILE = os.path.join(
@@ -47,18 +47,17 @@ os.makedirs(STATE_DIR, exist_ok=True)
 
 STATE_FILE = os.path.join(STATE_DIR, "sent_completed_keys.csv")
 
-SMTP_SERVER = "smtp.office365.com"
+SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
 
 FROM_EMAIL = os.getenv("EMAIL_USER")
 SMTP_PASSWORD = os.getenv("EMAIL_PASSWORD")
 
 TO_EMAILS = [
-    "recipient1@yourdomain.com",
-    "recipient2@yourdomain.com"
+    "recipient@domain.com"
 ]
 
-CC_EMAILS = ["cc_recipient@yourdomain.com"]
+CC_EMAILS = ["recipient@domain.com"]
 
 today = datetime.today().date()
 end_date = today - timedelta(days=1)
