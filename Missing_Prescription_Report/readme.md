@@ -115,7 +115,7 @@ missing_prescription_report/
 ├── main.py
 ├── README.md
 ├── requirements.txt
-└── .env (not committed to GitHub)
+└── prescription_no_yesterday.xlsx
 ```
 
 ---
