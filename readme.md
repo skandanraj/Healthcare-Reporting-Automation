@@ -123,7 +123,7 @@ File: `jenkins_master.py`
 - Exits with proper success/failure codes
 
 ### Advantages
-- Runs even if personal machine is OFF
+- Runs on a server independent of user session
 - Server-based automation
 - Enterprise-grade logging
 - CI/CD integration
