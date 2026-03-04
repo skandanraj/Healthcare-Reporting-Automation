@@ -31,14 +31,14 @@ load_dotenv()
 # ================= CONFIGURATION =================
 
 # Input MIS file
-input_file = r"data/MIS_Report.xlsx"
+input_file = r"input folder \Dummy Dataset.xlsx"
 
 # Output report file paths
-output_file_cancelled_paid = r"output/cancelled_paid_yesterday.xlsx"
-output_file_cancelled = r"output/cancelled_patients.xlsx"
+output_file_cancelled_paid = r"output folder path/cancelled_paid_yesterday.xlsx"
+output_file_cancelled = r"output folder path/cancelled_patients.xlsx"
 
 # SMTP Configuration
-SMTP_SERVER = "smtp.office365.com"
+SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
 
 # Load credentials securely from environment variables
@@ -46,8 +46,8 @@ FROM_EMAIL = os.getenv("EMAIL_USER")
 EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 
 # Email Recipients (generic for public repo)
-TO_EMAILS = ["recipient@yourdomain.com"]
-CC_EMAILS = ["cc_recipient@yourdomain.com"]
+TO_EMAILS = ["recipient@domain.com"]
+CC_EMAILS = ["recipient@domain.com"]
 
 SUBJECT = "Appointments Report"
 
@@ -89,11 +89,11 @@ df[DATE_COL] = pd.to_datetime(df[DATE_COL], errors='coerce')
 
 # Generic hospital names for public repository
 allowed_hospitals = [
-    "Hospital Name 1",
-    "Hospital Name 2",
-    "Hospital Name 3",
-    "Hospital Name 4",
-    "Hospital Name 5"
+      "Aster Medcity",
+    "Aster MIMS Hospital, Calicut",
+    "Aster MIMS Hospital, Kannur",
+    "Aster MIMS Kottakkal",
+    "Aster Mother Hospital, Areekode"
 ]
 
 
