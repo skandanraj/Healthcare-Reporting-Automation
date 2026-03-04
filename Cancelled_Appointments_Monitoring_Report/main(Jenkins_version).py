@@ -1,5 +1,5 @@
 """
-Cancelled Appointments Monitoring - Jenkins Version
+Cancelled Appointments Monitoring - Jenkins Version - Jenkins Version
 ----------------------------------------------
 
 Designed for CI/CD automation using Jenkins.
@@ -27,27 +27,37 @@ import sys
 sys.stdout.reconfigure(encoding="utf-8")
 
 # ================= CONFIG =================
+input_file = r"input folder path\Dummy Dataset.xlsx"
 
-# Use project-relative paths (Jenkins friendly)
-input_file = "data/MIS_Report.xlsx"
+output_file_cancelled_paid = (
+    r"output folder path"
+    r"\cancelled_paid_yesterday.xlsx"
+)
 
-output_file_cancelled_paid = "output/cancelled_paid_yesterday.xlsx"
-output_file_cancelled = "output/cancelled_patients.xlsx"
+output_file_cancelled = (
+    r"output folder path"
+    r"\cancelled_patients.xlsx"
+)
 
-SMTP_SERVER = "smtp.office365.com"
+SMTP_SERVER = "smtp.gmail.com"
 SMTP_PORT = 587
 
-# Load credentials from Jenkins Environment Variables
+# Credentials from environment variables
 FROM_EMAIL = os.getenv("EMAIL_USER")
 SMTP_PASSWORD = os.getenv("EMAIL_PASSWORD")
 
-# Generic recipients for public repo
-TO_EMAILS = ["recipient@yourdomain.com"]
-CC_EMAILS = ["cc_recipient@yourdomain.com"]
+# Placeholder emails
+TO_EMAILS = [
+    "recipient@domain.com"
+]
+
+CC_EMAILS = [
+    "recipient@domain.com"
+]
 
 SUBJECT = "Appointments Report"
 
-BODY = """Hi Team,
+BODY = """Hi Merin,
 
 Please find attached the latest reports:
 
@@ -55,7 +65,8 @@ Please find attached the latest reports:
 2. Cancelled appointments (yesterday and today).
 
 Best regards,
-Analytics Team
+BA Team
+Aster Digital Health
 """
 
 # ================= LOAD MIS =================
@@ -63,7 +74,7 @@ try:
     df = pd.read_excel(input_file, engine="openpyxl")
 except Exception as e:
     print("[ERROR] Failed to read MIS file:", e)
-    sys.exit(1)
+    sys.exit(0)
 
 df.columns = df.columns.str.strip()
 
@@ -72,7 +83,7 @@ possible_date_cols = [c for c in df.columns if "date" in c.lower()]
 if not possible_date_cols:
     print("[ERROR] Appointment date column not found")
     print(df.columns.tolist())
-    sys.exit(1)
+    sys.exit(0)
 
 DATE_COL = possible_date_cols[0]
 print("[INFO] Using appointment date column:", DATE_COL)
@@ -80,13 +91,12 @@ print("[INFO] Using appointment date column:", DATE_COL)
 df[DATE_COL] = pd.to_datetime(df[DATE_COL], errors="coerce")
 
 # ================= FILTER DATA =================
-
 allowed_hospitals = [
-    "Hospital Name 1",
-    "Hospital Name 2",
-    "Hospital Name 3",
-    "Hospital Name 4",
-    "Hospital Name 5"
+    "Aster Medcity",
+    "Aster MIMS Hospital, Calicut",
+    "Aster MIMS Hospital, Kannur",
+    "Aster MIMS Kottakkal",
+    "Aster Mother Hospital, Areekode"
 ]
 
 yesterday = datetime.today().date() - timedelta(days=1)
@@ -96,10 +106,7 @@ today = datetime.today().date()
 df_cp = df[df[DATE_COL].dt.date == yesterday]
 
 if "Consider Patient" in df_cp.columns:
-    df_cp = df_cp[
-        df_cp["Consider Patient"]
-        .astype(str).str.lower().str.strip() == "yes"
-    ]
+    df_cp = df_cp[df_cp["Consider Patient"].astype(str).str.lower().str.strip() == "yes"]
 
 cancelled_paid = df_cp[
     (df_cp["Appt. Status"].astype(str).str.lower().str.strip() == "cancelled") &
@@ -113,9 +120,7 @@ cols_cp = [
     "Appt. Status", "Appt. Payment Status"
 ]
 
-cancelled_paid = cancelled_paid[
-    [c for c in cols_cp if c in cancelled_paid.columns]
-].drop_duplicates()
+cancelled_paid = cancelled_paid[[c for c in cols_cp if c in cancelled_paid.columns]].drop_duplicates()
 
 os.makedirs(os.path.dirname(output_file_cancelled_paid), exist_ok=True)
 cancelled_paid.to_excel(output_file_cancelled_paid, index=False)
@@ -130,10 +135,7 @@ df_c = df[
 ].copy()
 
 if "Patient" in df_c.columns:
-    df_c = df_c[
-        df_c["Patient"]
-        .astype(str).str.lower().str.strip() == "yes"
-    ]
+    df_c = df_c[df_c["Patient"].astype(str).str.lower().str.strip() == "yes"]
 
 cols_c = [
     "Patient Name", "Hospital Name",
@@ -161,18 +163,24 @@ try:
         with open(path, "rb") as f:
             part = MIMEBase("application", "octet-stream")
             part.set_payload(f.read())
+
         encoders.encode_base64(part)
+
         part.add_header(
             "Content-Disposition",
             f"attachment; filename={os.path.basename(path)}"
         )
+
         msg.attach(part)
 
     server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
-    server.set_debuglevel(1)  # Visible in Jenkins logs
+    server.set_debuglevel(1)
     server.starttls()
+
     server.login(FROM_EMAIL, SMTP_PASSWORD)
+
     server.sendmail(FROM_EMAIL, TO_EMAILS + CC_EMAILS, msg.as_string())
+
     server.quit()
 
     print("[OK] Email sent successfully with both attachments")
@@ -180,4 +188,3 @@ try:
 except Exception as e:
     print("[ERROR] Email sending failed")
     print(str(e))
-    sys.exit(1)
