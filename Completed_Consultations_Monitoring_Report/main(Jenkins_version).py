@@ -24,59 +24,10 @@ from email.mime.text import MIMEText
 from email import encoders
 import sys
 
-# Jenkins-safe console
+# Ensure Jenkins-safe console output
 sys.stdout.reconfigure(encoding="utf-8")
 
-# ===================== CONFIG =====================
-
-INPUT_FILE = "data/MIS_Report.xlsx"
-
-OUTPUT_DIR = "output/last_15_days"
-os.makedirs(OUTPUT_DIR, exist_ok=True)
-
-OUTPUT_FILE = os.path.join(
-    OUTPUT_DIR,
-    "Completed_Consultations_Last15Days_AllUnits.xlsx"
-)
-
-STATE_DIR = os.path.join(OUTPUT_DIR, "state")
-os.makedirs(STATE_DIR, exist_ok=True)
-
-STATE_FILE = os.path.join(STATE_DIR, "sent_completed_keys.csv")
-
-SMTP_SERVER = "smtp.office365.com"
-SMTP_PORT = 587
-
-# Load from Jenkins Environment Variables
-FROM_EMAIL = os.getenv("EMAIL_USER")
-SMTP_PASSWORD = os.getenv("EMAIL_PASSWORD")
-
-TO_EMAILS = [
-    "recipient1@yourdomain.com",
-    "recipient2@yourdomain.com"
-]
-CC_EMAILS = ["cc_recipient@yourdomain.com"]
-
-today = datetime.today().date()
-end_date = today - timedelta(days=1)
-start_date = end_date - timedelta(days=14)
-
-SUBJECT = (
-    f"Completed Consultations (Last 15 Days) "
-    f"- {start_date:%d/%m/%Y} to {end_date:%d/%m/%Y}"
-)
-
-BODY = f"""Hi Team,
-
-Please find attached the completed consultations (Status = Done)
-for the last 15 days ({start_date:%d/%m/%Y} to {end_date:%d/%m/%Y}).
-
-Best regards,
-Analytics Team
-"""
-
 # ===================== MAIL HELPER =====================
-
 def send_mail_with_attachment(
     smtp_server, smtp_port, from_email, password,
     to_emails, cc_emails, subject, body, attachment_path
@@ -88,7 +39,9 @@ def send_mail_with_attachment(
     msg["Subject"] = subject
     msg.attach(MIMEText(body, "plain"))
 
-    if attachment_path and os.path.exists(attachment_path):
+    if attachment_path:
+        if not os.path.exists(attachment_path):
+            raise FileNotFoundError(f"Attachment not found: {attachment_path}")
         with open(attachment_path, "rb") as f:
             part = MIMEBase("application", "octet-stream")
             part.set_payload(f.read())
@@ -104,21 +57,82 @@ def send_mail_with_attachment(
     server = smtplib.SMTP(smtp_server, smtp_port)
     server.set_debuglevel(1)
     try:
+        server.ehlo()
         server.starttls()
+        server.ehlo()
         server.login(from_email, password)
         server.sendmail(from_email, recipients, msg.as_string())
     finally:
         server.quit()
 
-# ===================== HELPERS =====================
+# ===================== CONFIG =====================
 
-def mk_row_hash(*values):
-    normed = []
-    for v in values:
-        s = "" if v is None else str(v)
-        s = " ".join(s.strip().lower().split())
-        normed.append(s)
-    return hashlib.md5("|".join(normed).encode("utf-8")).hexdigest()
+INPUT_FILE = r"input folder path\Dummy Dataset.xlsx"
+
+OUTPUT_DIR = r"output folder path"
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+OUTPUT_FILE = os.path.join(
+    OUTPUT_DIR,
+    "Completed_Consultations_Last15Days_AllUnits.xlsx"
+)
+
+STATE_DIR = os.path.join(OUTPUT_DIR, "state")
+os.makedirs(STATE_DIR, exist_ok=True)
+
+STATE_FILE = os.path.join(STATE_DIR, "sent_completed_keys.csv")
+
+SMTP_SERVER = "smtp.gmail.com"
+SMTP_PORT = 587
+
+# Credentials from environment variables
+FROM_EMAIL = os.getenv("EMAIL_USER")
+SMTP_PASSWORD = os.getenv("EMAIL_PASSWORD")
+
+# Placeholder emails
+TO_EMAILS = [
+    "recepitent@domain.com"
+]
+
+CC_EMAILS = [
+    "recipient@domain.com"
+]
+
+today = datetime.today().date()
+end_date = today - timedelta(days=1)
+start_date = end_date - timedelta(days=14)
+
+SUBJECT = (
+    f"Completed Consultations (Last 15 Days) "
+    f"- {start_date:%d/%m/%Y} to {end_date:%d/%m/%Y}"
+)
+
+BODY = f"""Hi Team,
+
+Please find attached the completed consultations (Appt. Status = done)
+for the last 15 days ({start_date:%d/%m/%Y} to {end_date:%d/%m/%Y})
+across all units.
+
+Columns:
+Patient Name, Contact Number, UHID,
+Date of Completed Appointment, Doctor Name,
+Speciality, Unit.
+
+Best regards,
+BA Team
+Aster Digital Health
+"""
+
+# ===================== HELPERS =====================
+def first_existing(candidates, cols):
+    for c in candidates:
+        if c in cols:
+            return c
+    return None
+
+def to_date(series):
+    s = pd.to_datetime(series, errors="coerce")
+    return s.dt.date
 
 def load_sent_keys(path):
     if not os.path.exists(path):
@@ -135,38 +149,53 @@ def save_append_keys(path, keys):
     df = pd.DataFrame({"key": keys})
     df.to_csv(path, mode="a", index=False, header=not os.path.exists(path))
 
-# ===================== LOAD MIS =====================
+def mk_row_hash(*values):
+    normed = []
+    for v in values:
+        s = "" if v is None else str(v)
+        s = " ".join(s.strip().lower().split())
+        normed.append(s)
+    return hashlib.md5("|".join(normed).encode("utf-8")).hexdigest()
 
+# ===================== LOAD MIS =====================
 try:
-    df = pd.read_excel(INPUT_FILE, engine="openpyxl")
+    try:
+        df = pd.read_excel(INPUT_FILE, sheet_name="Export", engine="openpyxl")
+    except Exception:
+        df = pd.read_excel(INPUT_FILE, engine="openpyxl")
 except Exception as e:
     print("[ERROR] Could not read MIS file:", e)
-    sys.exit(1)
+    sys.exit(0)
 
 df.columns = df.columns.map(lambda x: str(x).strip())
 
-required_cols = [
-    "Patient Name",
-    "Mobile",
-    "UHID",
-    "Doctor Name",
-    "Speciality",
-    "Hospital Name",
-    "Appt. Status",
-    "Appointment Date",
+# Column mapping
+col_patient = first_existing(["Patient Name"], df.columns)
+col_mobile = first_existing(["Mobile", "Contact Number", "Phone"], df.columns)
+col_uhid = first_existing(["UHID", "Uhid"], df.columns)
+col_doctor = first_existing(["Doctor Name"], df.columns)
+col_spec = first_existing(["Speciality", "Specialty"], df.columns)
+col_unit = first_existing(["Hospital Name", "Unit"], df.columns)
+col_status = first_existing(["Appt. Status", "Appointment Status"], df.columns)
+col_appt_date = first_existing(["Appointment Date", "Appt Date"], df.columns)
+col_completed_dt = first_existing(["Completed DateTime"], df.columns)
+col_appt_id = first_existing(["Appointment ID"], df.columns)
+
+required = [
+    col_patient, col_mobile, col_uhid,
+    col_doctor, col_spec, col_unit,
+    col_status, col_appt_date
 ]
 
-if any(c not in df.columns for c in required_cols):
+if any(c is None for c in required):
     print("[ERROR] Missing required columns")
-    sys.exit(1)
+    sys.exit(0)
 
-df["Appointment Date"] = pd.to_datetime(
-    df["Appointment Date"], errors="coerce"
-)
-df["__appt_date_only"] = df["Appointment Date"].dt.date
+df[col_appt_date] = pd.to_datetime(df[col_appt_date], errors="coerce")
+df["__appt_date_only"] = df[col_appt_date].dt.date
 
 mask = (
-    (df["Appt. Status"].astype(str).str.lower().str.strip() == "done") &
+    (df[col_status].astype(str).str.lower().str.strip() == "done") &
     (df["__appt_date_only"] >= start_date) &
     (df["__appt_date_only"] <= end_date)
 )
@@ -174,31 +203,36 @@ mask = (
 df_f = df.loc[mask].copy()
 
 if "Consider Patient" in df_f.columns:
-    df_f = df_f[
-        df_f["Consider Patient"]
-        .astype(str).str.lower().str.strip() == "yes"
-    ]
+    df_f = df_f[df_f["Consider Patient"].astype(str).str.lower().str.strip() == "yes"]
 
-out = df_f[[
-    "Patient Name",
-    "Mobile",
-    "UHID",
-    "Appointment Date",
-    "Doctor Name",
-    "Speciality",
-    "Hospital Name"
-]].copy()
-
-out["__key"] = out.apply(
-    lambda r: mk_row_hash(
-        r["Patient Name"],
-        r["UHID"],
-        r["Doctor Name"],
-        r["Hospital Name"],
-        r["Appointment Date"]
-    ),
-    axis=1
+done_date = (
+    to_date(df_f[col_completed_dt]).fillna(to_date(df_f[col_appt_date]))
+    if col_completed_dt in df_f.columns
+    else to_date(df_f[col_appt_date])
 )
+
+out = pd.DataFrame({
+    "Patient Name": df_f[col_patient],
+    "Contact Number": df_f[col_mobile],
+    "UHID": df_f[col_uhid],
+    "Date of Completed Appointment": done_date,
+    "Doctor Name": df_f[col_doctor],
+    "Speciality": df_f[col_spec],
+    "Unit": df_f[col_unit],
+})
+
+# Dedup logic
+if col_appt_id and col_appt_id in df_f.columns:
+    out["__key"] = df_f[col_appt_id].astype(str).apply(mk_row_hash)
+else:
+    out["__key"] = out.apply(
+        lambda r: mk_row_hash(
+            r["Patient Name"], r["UHID"],
+            r["Doctor Name"], r["Unit"],
+            r["Date of Completed Appointment"]
+        ),
+        axis=1
+    )
 
 sent_keys = load_sent_keys(STATE_FILE)
 out_new = out[~out["__key"].isin(sent_keys)].drop_duplicates()
@@ -216,12 +250,9 @@ out_new.drop(columns="__key").to_excel(
 print("[OK] Excel generated:", OUTPUT_FILE)
 
 send_mail_with_attachment(
-    SMTP_SERVER,
-    SMTP_PORT,
-    FROM_EMAIL,
-    SMTP_PASSWORD,
-    TO_EMAILS,
-    CC_EMAILS,
+    SMTP_SERVER, SMTP_PORT,
+    FROM_EMAIL, SMTP_PASSWORD,
+    TO_EMAILS, CC_EMAILS,
     SUBJECT + f" | New rows: {len(out_new)}",
     BODY,
     OUTPUT_FILE
