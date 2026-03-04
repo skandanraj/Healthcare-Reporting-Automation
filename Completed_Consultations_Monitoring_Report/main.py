@@ -39,7 +39,7 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 OUTPUT_FILE = os.path.join(
     OUTPUT_DIR,
-    "Completed_Consultations_Last15Days_AllUnits.xlsx"
+    "completed_consultations_15days.xlsx"
 )
 
 STATE_DIR = os.path.join(OUTPUT_DIR, "state")
