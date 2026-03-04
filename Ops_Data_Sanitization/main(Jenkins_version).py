@@ -20,18 +20,18 @@ import sys
 
 # Ensure Jenkins-safe console output
 sys.stdout.reconfigure(encoding="utf-8")
+sys.stderr.reconfigure(encoding="utf-8")
+
 
 # ================= INPUT / OUTPUT =================
 # Use workspace-relative paths (Jenkins friendly)
+input_file = r"input folder path\Dummy Dataset.xlsx"
 
-input_file = "data/MIS_Report.xlsx"
+# Get the folder where the input file is located
+input_folder = os.path.dirname(input_file)
 
-output_folder = "output"
-os.makedirs(output_folder, exist_ok=True)
-
-output_file = os.path.join(output_folder, "MIS_Report_Operational_View.xlsx")
-
-
+# Save output in the same folder
+output_file = os.path.join(input_folder, "MIS_Report_Operational_View.xlsx")
 # ================= COLUMNS TO KEEP =================
 columns_to_keep = [
     "UHID",
@@ -65,7 +65,6 @@ columns_to_keep = [
     "Room ID",
     "Is Prescription Generated",
     "Prescription Generated DateTime",
-    "Waiting Time Patient",
     "Event Join Time Patient",
     "Event Left Time Patient",
     "Event Join Time Doctor",
