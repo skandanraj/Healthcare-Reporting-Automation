@@ -142,8 +142,6 @@ cancelled_appointments_monitoring/
 ├── main.py
 ├── README.md
 ├── requirements.txt
-├── data/
-│   └── MIS_Report.xlsx
 ├── cancelled_paid_yesterday.xlsx
 ├──cancelled_patients.xlsx
 ```
