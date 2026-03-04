@@ -52,11 +52,7 @@ mis_column_standardization/
 ├── main.py
 ├── README.md
 ├── requirements.txt
-├── data/
-│   └── MIS_Report.xlsx
-│
-└── output/
-    └── MIS_Report_Cleaned.xlsx
+├── Ops_Data_Sanitization
 ```
 
 ---
